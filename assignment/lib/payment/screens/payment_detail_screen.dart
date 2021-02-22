@@ -1,5 +1,6 @@
 import 'package:assignment/payment/bloc/payment_bloc.dart';
 import 'package:assignment/payment/constants.dart';
+import 'package:assignment/payment/model/payment_model.dart';
 import 'package:assignment/payment/widget/common_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -20,11 +21,13 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   TabController _tabController;
+  PaymentModel _paymentModel;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(initialIndex: 0, length: 3, vsync: this);
+    _paymentModel = this._bloc.getPaymentModel();
   }
 
   @override
@@ -178,40 +181,66 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
                               color: Colors.black,
                               fontSize: 18,
                               fontWeight: FontWeight.bold),
+                          SizedBox(
+                            height: 20,
+                          ),
                           Column(
                             children: List.generate(
-                                4,
-                                (index) => Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        border: Border.all(
-                                          width: 0.5,
-                                          color: Colors.grey[500],
-                                        ),
-                                        borderRadius: BorderRadius.circular(4),
+                                this._paymentModel.paymentOptions.length + 1,
+                                (index) {
+                              if (index == 0) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    border: Border.all(
+                                      width: 0.5,
+                                      color: Colors.grey[500],
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  margin: EdgeInsets.only(top: 10),
+                                  child: ExpansionTile(
+                                      leading: Icon(
+                                        Icons.credit_card_outlined,
+                                        color: Colors.indigo,
+                                        size: 30.0,
                                       ),
-                                      margin: EdgeInsets.only(top: 10),
-                                      child: ExpansionTile(
-                                        leading: Icon(
-                                          Icons.credit_card_outlined,
-                                          color: Colors.indigo,
-                                          size: 30.0,
-                                        ),
-                                        title: commonTextBox(
-                                          text: "Saved Card",
-                                          color: Colors.grey[700],
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        children: [
-                                          cardDetailWidget(),
-                                          cardDetailWidget(),
-                                          cardDetailWidget(),
-                                          cardDetailWidget(),
-                                        ],
+                                      title: commonTextBox(
+                                        text: "Saved Card",
+                                        color: Colors.grey[700],
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
                                       ),
-                                    )),
-                          )
+                                      children: List.generate(
+                                        this
+                                            ._paymentModel
+                                            .savedCardModel
+                                            .length,
+                                        (index) => cardDetailWidget(
+                                            index: index,
+                                            payCardName: this
+                                                ._paymentModel
+                                                .savedCardModel[index]
+                                                .payCardname,
+                                            payCardNo: this
+                                                ._paymentModel
+                                                .savedCardModel[index]
+                                                .payCardNo,
+                                            payCardType: this
+                                                ._paymentModel
+                                                .savedCardModel[index]
+                                                .payCardType,
+                                            payOption: this
+                                                ._paymentModel
+                                                .savedCardModel[index]
+                                                .paymentOpt),
+                                      )),
+                                );
+                              } else {
+                                return SizedBox();
+                              }
+                            }),
+                          ),
                         ],
                       ),
                     ),
@@ -288,101 +317,115 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
         ],
       );
 
-  Widget cardDetailWidget() => Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                right: 20,
-                top: 5,
-                bottom: 5,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Radio(
-                      activeColor: Colors.blue[300],
-                      value: 1,
-                      groupValue: 1,
-                      onChanged: (value) {}),
-                  Icon(
-                    Icons.credit_card_outlined,
-                    color: Colors.deepPurple,
-                    size: 30,
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      commonTextBox(
-                        text: "xxxxxxxxxxxxx0789",
-                        color: Colors.grey[700],
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      commonTextBox(
-                        text: "Vinod Khadka",
-                        color: Colors.grey[700],
+  Widget cardDetailWidget(
+      {String payCardNo,
+      String payOption,
+      String payCardName,
+      String payCardType,
+      int index}) {
+    RadioButtonBloc radioButtonBloc = RadioButtonBloc();
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+              right: 20,
+              top: 5,
+              bottom: 5,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                StreamBuilder<int>(
+                    stream: radioButtonBloc.radioController,
+                    builder: (context, snapshot) {
+                      return Radio(
+                          activeColor: Colors.blue[300],
+                          value: index,
+                          groupValue: snapshot.data,
+                          onChanged: (value) {
+                            radioButtonBloc.radioController.sink.add(value);
+                          });
+                    }),
+                Icon(
+                  Icons.credit_card_outlined,
+                  color: Colors.deepPurple,
+                  size: 30,
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    commonTextBox(
+                      text: "XXXX XXXX XXXX $payCardNo",
+                      color: Colors.grey[700],
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    commonTextBox(
+                      text: '$payCardName',
+                      color: Colors.grey[700],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ],
+                ),
+                Spacer(),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.18,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(10),
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: "CVV",
+                      hintStyle: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w400,
                       ),
-                    ],
-                  ),
-                  Spacer(),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.18,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.all(10),
-                        isDense: true,
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintText: "CVV",
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                        ),
-                        enabledBorder: OutlineInputBorder(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                        borderSide: BorderSide(color: Colors.grey[400]),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                        borderSide: BorderSide(color: Colors.grey[400]),
+                      ),
+                      errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(5)),
-                          borderSide: BorderSide(color: Colors.grey[400]),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5)),
-                          borderSide: BorderSide(color: Colors.grey[400]),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(5)),
-                            borderSide: BorderSide(color: Colors.red)),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5)),
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
+                          borderSide: BorderSide(color: Colors.red)),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                        borderSide: BorderSide(color: Colors.red),
                       ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              child: RaisedButton(
-                elevation: 0.0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                onPressed: () {},
-                color: Colors.red,
-                child: commonTextBox(
-                    color: Colors.white,
-                    fontSize: 16,
-                    text: "PAY AED ${this._bloc.amount}"),
+          ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: RaisedButton(
+              elevation: 0.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
               ),
-            )
-          ],
-        ),
-      );
+              onPressed: () {},
+              color: Colors.red,
+              child: commonTextBox(
+                  color: Colors.white,
+                  fontSize: 16,
+                  text: "PAY AED ${this._bloc.amount}"),
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }
