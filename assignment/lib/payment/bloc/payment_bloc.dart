@@ -12,6 +12,7 @@ class PaymentBloc {
   String amount;
   PaymentModel paymentModel;
 
+// get api data
   void getCardDetail() async {
     http.Response response = await http.get("https://api.mocki.io/v1/488c4a8d");
     Map<String, dynamic> respoBody = json.decode(response.body);

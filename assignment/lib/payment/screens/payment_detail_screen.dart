@@ -4,6 +4,8 @@ import 'package:assignment/payment/model/payment_model.dart';
 import 'package:assignment/payment/widget/common_widget.dart';
 import 'package:flutter/material.dart';
 
+import '../widget/common_widget.dart';
+
 class PaymentDetailScreen extends StatefulWidget {
   final PaymentBloc bloc;
   const PaymentDetailScreen({Key key, this.bloc}) : super(key: key);
@@ -237,7 +239,24 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
                                       )),
                                 );
                               } else {
-                                return SizedBox();
+                                switch (this
+                                    ._paymentModel
+                                    .paymentOptions[index - 1]
+                                    .payopt) {
+                                  case "OPTCARD":
+                                    return creditCardExpansionWidget(
+                                        this._paymentModel, index);
+                                    break;
+                                  case "OPTSPAY":
+                                    return otherPaymentExpansionWidget(
+                                        this._paymentModel, index);
+                                    break;
+                                  case "OPTCUPAY":
+                                    return otherPaymentExpansionWidget(
+                                        this._paymentModel, index);
+                                  default:
+                                    return SizedBox.shrink();
+                                }
                               }
                             }),
                           ),
@@ -257,6 +276,8 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
           )),
     );
   }
+
+  // ************************** payment widgets *********************************
 
   Widget couponWidget() => Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -325,7 +346,10 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
       int index}) {
     RadioButtonBloc radioButtonBloc = RadioButtonBloc();
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(width: 0.5, color: Colors.grey)),
+        color: Colors.white,
+      ),
       child: Column(
         children: [
           Padding(
@@ -344,7 +368,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
                       return Radio(
                           activeColor: Colors.blue[300],
                           value: index,
-                          groupValue: snapshot.data,
+                          groupValue: 0,
                           onChanged: (value) {
                             radioButtonBloc.radioController.sink.add(value);
                           });
@@ -409,6 +433,119 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
               ],
             ),
           ),
+          index == 0
+              ? SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: RaisedButton(
+                    elevation: 0.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    onPressed: () {},
+                    color: Colors.red,
+                    child: commonTextBox(
+                        color: Colors.white,
+                        fontSize: 16,
+                        text: "PAY AED ${this._bloc.amount}"),
+                  ),
+                )
+              : SizedBox.shrink(),
+        ],
+      ),
+    );
+  }
+
+  Widget creditCardExpansionWidget(PaymentModel _paymentModel, int index) =>
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          border: Border.all(
+            width: 0.5,
+            color: Colors.grey[500],
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        margin: EdgeInsets.only(top: 10),
+        child: ExpansionTile(
+            leading: Icon(
+              Icons.credit_card_outlined,
+              color: Colors.indigo,
+              size: 30.0,
+            ),
+            title: commonTextBox(
+              text: _paymentModel.paymentOptions[index - 1].desc,
+              color: Colors.grey[700],
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+            children: List.generate(1, (index) => creditDebitWidget())),
+      );
+
+  Widget otherPaymentExpansionWidget(
+          PaymentModel _paymentModel, int mainIndex) =>
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          border: Border.all(
+            width: 0.5,
+            color: Colors.grey[500],
+          ),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        margin: EdgeInsets.only(top: 10),
+        child: ExpansionTile(
+            leading: Icon(
+              Icons.credit_card_outlined,
+              color: Colors.indigo,
+              size: 30.0,
+            ),
+            title: commonTextBox(
+              text: _paymentModel.paymentOptions[mainIndex - 1].desc,
+              color: Colors.grey[700],
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+            children: List.generate(
+                1,
+                (index) => otherPaymentWidget(
+                    payCardName:
+                        _paymentModel.paymentOptions[mainIndex - 1].desc))),
+      );
+
+  Widget otherPaymentWidget({String payCardName}) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(width: 0.5, color: Colors.grey)),
+        color: Colors.white,
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.payments_sharp,
+                size: 30,
+                color: Colors.blue,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              commonTextBox(
+                text: payCardName ?? "",
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              )
+            ],
+          ),
+          commonTextBox(
+            text: "Use your Samsung Pay to make payment",
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[400],
+          ),
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.8,
             child: RaisedButton(
@@ -423,7 +560,124 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen>
                   fontSize: 16,
                   text: "PAY AED ${this._bloc.amount}"),
             ),
-          )
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget creditDebitWidget() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(width: 0.5, color: Colors.grey)),
+        color: Colors.white,
+      ),
+      child: Column(
+        children: [
+          cardNumberWidget(hintText: "Enter Card Number"),
+          expiryCvvWidget(),
+          checkBox(),
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: RaisedButton(
+              elevation: 0.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              onPressed: () {},
+              color: Colors.red,
+              child: commonTextBox(
+                  color: Colors.white,
+                  fontSize: 16,
+                  text: "PAY AED ${this._bloc.amount}"),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget cardNumberWidget({
+    String hintText,
+  }) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: commonTextBox(
+                color: Colors.grey,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                text: "Card Number"),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: textWidget(hintText: hintText, hintColor: Colors.grey[300]),
+          ),
+        ],
+      );
+
+  Widget expiryCvvWidget() => Row(children: [
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: commonTextBox(
+                    color: Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    text: "Expiry Date"),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: textWidget(
+                    hintText: "Expiry Date", hintColor: Colors.grey[300]),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          width: MediaQuery.of(context).size.width * 0.4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: commonTextBox(
+                    color: Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    text: "CVV"),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: textWidget(hintText: "CVV", hintColor: Colors.grey[300]),
+              ),
+            ],
+          ),
+        ),
+      ]);
+
+  Widget checkBox() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Checkbox(
+            value: true,
+            onChanged: (value) {},
+          ),
+          commonTextBox(
+              text: "Save this card for faster payment",
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w400,
+              fontSize: 16),
         ],
       ),
     );

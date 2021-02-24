@@ -15,3 +15,33 @@ Widget commonTextBox(
         decoration: textDecoration,
       ),
     );
+
+Widget textWidget({String hintText, Color hintColor = Colors.grey}) =>
+    TextField(
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.all(15),
+        isDense: true,
+        filled: true,
+        fillColor: Colors.white,
+        hintText: hintText ?? "",
+        hintStyle: TextStyle(
+          fontSize: 14,
+          color: hintColor,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5)),
+          borderSide: BorderSide(color: Colors.grey[300]),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5)),
+          borderSide: BorderSide(color: Colors.grey[300]),
+        ),
+        errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            borderSide: BorderSide(color: Colors.red)),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5)),
+          borderSide: BorderSide(color: Colors.red),
+        ),
+      ),
+    );
